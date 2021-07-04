@@ -1,56 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import './App.css';
+import Feed from './components/Feed';
+import Header from './components/Header';
+import Login from './components/Login';
+import Sidebar from './components/Sidebar';
+import Widgets from './components/Widgets';
+import { login, logout, selectUser } from './features/userSlice';
+import { auth } from './firebase';
 
 function App() {
+
+  const user = useSelector(selectUser)
+
+  const dispacth = useDispatch()
+
+  useEffect(() => {
+    auth.onAuthStateChanged((userAuth) => {
+
+      if (userAuth) {
+        // user is logged in
+        dispacth(
+          login({
+            email: userAuth.email,
+            uid: userAuth.uid,
+            displayName: userAuth.displayName,
+            photoUrl: userAuth.photoURL
+          })
+        )
+      } else {
+        // user is logged out
+        dispacth(logout())
+      }
+    })
+  }, [dispacth])
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+    <div className="app">
+      {!user ? (<Login />) : (
+        <>
+          <Header />
+          <div className="app__body">
+            <Sidebar />
+            <Feed />
+            <Widgets />
+          </div>
+        </>
+      )
+      }
+
     </div>
   );
 }
